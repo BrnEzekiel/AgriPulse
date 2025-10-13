@@ -1,0 +1,608 @@
+<!DOCTYPE html>
+<html lang="en" class="theme-green">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AgriPulse Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+
+<body class="bg-gray-50 font-sans">
+
+    <div id="auth" class="min-h-screen flex items-center justify-center bg-gray-100">
+        <div class="max-w-md w-full space-y-8 p-10 bg-white rounded-xl shadow-2xl">
+            <div class="text-center">
+                <div class="text-3xl font-bold text-primary flex items-center justify-center">
+                    <i class="fas fa-leaf mr-2"></i>
+                    AgriPulse
+                </div>
+                <div class="text-xs text-gray-500 font-medium tracking-wider uppercase mt-1">Smart Farming, Sustainable Future</div>
+                <h2 id="auth-title" class="mt-6 text-2xl font-extrabold text-gray-900">
+                    Sign In to your account
+                </h2>
+            </div>
+            <form class="mt-8 space-y-6" id="auth-form" action="#" method="POST">
+                <input type="hidden" id="auth-mode" value="login">
+                <div class="rounded-md shadow-sm -space-y-px">
+                    <div>
+                        <label for="email-address" class="sr-only">Email address</label>
+                        <input id="email-address" name="email" type="email" autocomplete="email" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm" placeholder="Email address">
+                    </div>
+                    <div id="name-field" class="hidden">
+                        <label for="full-name" class="sr-only">Full Name</label>
+                        <input id="full-name" name="name" type="text" autocomplete="name" class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm" placeholder="Full Name">
+                    </div>
+                    <div>
+                        <label for="password" class="sr-only">Password</label>
+                        <input id="password" name="password" type="password" autocomplete="current-password" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm" placeholder="Password">
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit" id="auth-submit-btn" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark transition duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        Sign In
+                    </button>
+                </div>
+                <div class="text-center text-sm">
+                    <a href="javascript:void(0)" id="toggle-auth-mode" class="font-medium text-primary hover:text-primary-dark transition duration-300">
+                        Don't have an account? Sign Up
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="main-app" class="min-h-screen flex flex-col hidden">
+        
+        <header class="bg-white shadow-sm sticky top-0 z-20">
+            <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-2 flex justify-between items-center flex-wrap">
+                <div class="flex flex-col items-start mb-2 sm:mb-0">
+                    <div class="text-2xl font-bold text-primary flex items-center">
+                        <i class="fas fa-leaf mr-2"></i>
+                        AgriPulse
+                    </div>
+                    <div class="text-xs text-gray-500 font-medium tracking-wider uppercase mt-0.5">Smart Farming, Sustainable Future</div>
+                </div>
+
+                <div class="flex items-center space-x-2 sm:space-x-4 flex-grow sm:flex-grow-0 justify-end">
+                    <div class="relative w-full sm:w-auto">
+                        <select id="context-selector" class="block appearance-none bg-white border border-gray-300 hover:border-gray-400 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm font-medium transition duration-300">
+                            </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-2">
+                        <button id="export-btn" class="bg-primary hover:bg-primary-dark text-white px-2 sm:px-3 py-2 rounded-md text-sm font-medium flex items-center transition duration-300">
+                            <i class="fas fa-file-export mr-0 sm:mr-2"></i> <span class="hidden sm:inline">Export Data</span>
+                        </button>
+                        <button id="notifications-btn" class="relative bg-gray-100 p-2 rounded-full hover:bg-gray-200 transition duration-300" title="Notifications">
+                            <i class="fas fa-bell text-gray-600"></i>
+                            <span class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">3</span>
+                        </button>
+                        <button id="logout-btn" class="bg-gray-100 p-2 rounded-full hover:bg-gray-200 transition duration-300" title="Logout">
+                            <i class="fas fa-sign-out-alt text-gray-600"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-grow flex lg:flex-row">
+            <nav class="bg-secondary text-white w-64 flex-shrink-0 transition-all duration-300">
+                <div class="p-4 sticky top-[82px]">
+                    <div class="px-4 py-3 text-sm text-gray-300">
+                        <div class="font-medium" id="user-name"></div>
+                        <div id="user-email"></div>
+                    </div>
+                    <hr class="border-border-color my-2">
+                    <ul class="mt-4 space-y-1">
+                        <li>
+                            <a href="javascript:void(0)" class="nav-link block px-4 py-2 rounded-md font-medium text-white bg-secondary-active hover:bg-secondary-hover transition duration-150" data-page="dashboard">
+                                <i class="fas fa-tachometer-alt mr-3"></i> Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0)" class="nav-link block px-4 py-2 rounded-md font-medium text-gray-300 hover:bg-secondary-hover hover:text-white transition duration-150" data-page="tasks">
+                                <i class="fas fa-calendar-check mr-3"></i> Tasks & Inventory
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0)" class="nav-link block px-4 py-2 rounded-md font-medium text-gray-300 hover:bg-secondary-hover hover:text-white transition duration-150" data-page="upload">
+                                <i class="fas fa-microscope mr-3"></i> Crop Doctor/Upload
+                            </a>
+                        </li>
+                        <hr class="border-border-color my-2">
+                        <li>
+                            <a href="javascript:void(0)" class="nav-link block px-4 py-2 rounded-md font-medium text-gray-300 hover:bg-secondary-hover hover:text-white transition duration-150" data-page="marketplace">
+                                <i class="fas fa-store mr-3"></i> Marketplace & Prices
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0)" class="nav-link block px-4 py-2 rounded-md font-medium text-gray-300 hover:bg-secondary-hover hover:text-white transition duration-150" data-page="financials">
+                                <i class="fas fa-wallet mr-3"></i> Financials
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0)" class="nav-link block px-4 py-2 rounded-md font-medium text-gray-300 hover:bg-secondary-hover hover:text-white transition duration-150" data-page="planning">
+                                <i class="fas fa-chart-line mr-3"></i> Planning & Modeling
+                            </a>
+                        </li>
+                        <hr class="border-border-color my-2">
+                         <li>
+                            <a href="javascript:void(0)" class="nav-link block px-4 py-2 rounded-md font-medium text-gray-300 hover:bg-secondary-hover hover:text-white transition duration-150" data-page="doctor">
+                                <i class="fas fa-user-md mr-3"></i> Real-time Doctor
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0)" class="nav-link block px-4 py-2 rounded-md font-medium text-gray-300 hover:bg-secondary-hover hover:text-white transition duration-150" data-page="settings">
+                                <i class="fas fa-cog mr-3"></i> Settings
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <div class="flex-grow overflow-y-auto">
+
+                <div id="dashboard" class="page-content active p-4 sm:p-6 fade-in">
+                    <h1 class="text-2xl font-semibold text-gray-800 mb-6">Dashboard Overview: <span id="current-field-name"></span></h1>
+                    
+                    <div id="field-type-display" class="bg-blue-50 text-blue-800 font-medium py-2 px-4 rounded-md mb-6 border border-blue-200 shadow-sm">
+                        <i class="fas fa-tag mr-2"></i> Field Type: <span id="current-field-type"></span>
+                    </div>
+
+                    <div id="dynamic-dashboard-content">
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                            <div class="lg:col-span-2 bg-white rounded-lg shadow p-2 transition duration-300">
+                                <h3 class="text-lg font-medium text-gray-800 mb-2 px-4 pt-2">Field Location & Zoning</h3>
+                                <div id="map-container" style="height: 350px;" class="rounded-lg"></div>
+                                <div class="p-4 flex items-center justify-between text-sm">
+                                    <div id="map-layer-controls">
+                                        <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-full text-xs layer-btn active" data-layer="default">Default View</button>
+                                        <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-full text-xs layer-btn" data-layer="moisture">Soil Moisture Map</button>
+                                    </div>
+                                    <p class="text-gray-500 text-xs">Lat/Lon: <span id="map-coords"></span></p>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-6">
+                                <div class="bg-white rounded-lg shadow p-6 border-l-4 border-primary transition duration-300 context-dependent">
+                                    <p class="text-sm font-medium text-gray-500" id="kpi-1-title">Yield Forecast (Tons/Ha)</p>
+                                    <p class="text-3xl font-bold text-gray-900 mt-1" id="kpi-1-value">...</p>
+                                    <div class="text-sm mt-2 text-primary" id="kpi-1-description">...</div>
+                                </div>
+                                <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500 transition duration-300 context-dependent">
+                                    <p class="text-sm font-medium text-gray-500">Critical Alerts</p>
+                                    <p class="text-3xl font-bold text-red-500 mt-1" id="alert-count">3</p>
+                                    <div class="text-sm mt-2 text-red-500" id="alert-detail">Low Moisture & Fungus Risk</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="dynamic-chart-row" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="bg-white rounded-lg shadow p-6 transition duration-300 context-dependent">
+                                <h3 class="text-lg font-medium text-gray-800 mb-4">Yield Forecast Trend</h3>
+                                <div class="chart-container" style="height: 250px;"><canvas id="yield-forecast-chart"></canvas></div>
+                            </div>
+                            <div class="bg-white rounded-lg shadow p-6 transition duration-300 context-dependent">
+                                <h3 class="text-lg font-medium text-gray-800 mb-4">Soil Moisture & Rainfall (Last 7 Days)</h3>
+                                <div class="chart-container" style="height: 250px;"><canvas id="moisture-rainfall-chart"></canvas></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tasks" class="page-content p-4 sm:p-6">
+                    <h1 class="text-2xl font-semibold text-gray-800 mb-6">Tasks & Inventory Management</h1>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-white rounded-lg shadow p-6 transition duration-300">
+                            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex justify-between items-center">
+                                Scheduled Tasks <i class="fas fa-list-check text-primary"></i>
+                            </h2>
+                            <div id="tasks-list" class="space-y-3">
+                                </div>
+                            <button id="add-task-btn" class="mt-4 w-full bg-primary hover:bg-primary-dark text-white py-2 rounded-md text-sm font-medium transition duration-300">
+                                <i class="fas fa-plus mr-2"></i> Add New Task
+                            </button>
+                        </div>
+                        
+                        <div class="bg-white rounded-lg shadow p-6 transition duration-300">
+                            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex justify-between items-center">
+                                Critical Inventory <i class="fas fa-warehouse text-primary"></i>
+                            </h2>
+                            <div id="inventory-list" class="space-y-4">
+                                </div>
+                            <button id="manage-inventory-btn" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md text-sm font-medium transition duration-300">
+                                View/Manage All
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="upload" class="page-content p-4 sm:p-6">
+                    <h1 class="text-2xl font-semibold text-gray-800 mb-6">Crop Doctor & Data Upload</h1>
+
+                    <div class="bg-white rounded-lg shadow p-6 mb-6">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center"><i class="fas fa-camera mr-2 text-red-500"></i> Crop Doctor Diagnosis</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="col-span-1 md:col-span-2">
+                                <div class="file-drop-area p-8 rounded-lg cursor-pointer transition duration-300" id="crop-doctor-drop-area">
+                                    <div class="text-center">
+                                        <i class="fas fa-image text-gray-400 text-4xl mb-2"></i>
+                                        <h3 class="text-lg font-medium text-gray-800 mb-1">Drag and drop crop photo here</h3>
+                                        <p class="text-gray-600 mb-4">or click to browse (JPEG, PNG, max 10MB)</p>
+                                        <label class="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium cursor-pointer transition duration-300">
+                                            Upload Photo
+                                            <input type="file" class="hidden" id="crop-doctor-input" accept="image/jpeg,image/png">
+                                        </label>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-span-1 border border-gray-300 rounded-lg overflow-hidden p-2 flex items-center justify-center bg-gray-100">
+                                <img id="crop-image-preview" src="" alt="Image Preview" class="max-w-full max-h-48 object-contain hidden transition duration-300">
+                                <p id="crop-preview-placeholder" class="text-gray-500">Image Preview</p>
+                            </div>
+                        </div>
+
+                        <div id="diagnosis-result" class="mt-6 p-6 bg-white rounded-lg shadow border border-red-200 hidden fade-in">
+                            <h4 class="text-2xl font-bold text-red-800 mb-4 flex items-center border-b pb-2">
+                                <i class="fas fa-exclamation-triangle mr-3"></i> AI Diagnosis Report
+                            </h4>
+                            <div id="diagnosis-details" class="space-y-4">
+                                <div class="result-section">
+                                    <h5 class="text-lg font-semibold text-gray-800 mb-1 border-b pb-1">1. Disease/Pest Identification</h5>
+                                    <p id="diag-disease" class="text-red-700 font-medium"></p>
+                                    <p id="diag-likelihood" class="text-sm text-red-600"></p>
+                                </div>
+                                <div class="result-section">
+                                    <h5 class="text-lg font-semibold text-gray-800 mb-1 border-b pb-1">3. Treatment Recommendation</h5>
+                                    <p id="diag-treatment" class="text-primary font-medium"></p>
+                                </div>
+                                <div class="result-section">
+                                    <h5 class="text-lg font-semibold text-gray-800 mb-1 border-b pb-1">4. Recommended Vendor</h5>
+                                    <p id="diag-source" class="text-gray-700 mb-3"></p>
+                                    <button id="link-to-marketplace-btn" class="bg-orange-500 hover:bg-orange-600 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center transition duration-300 hidden">
+                                        <i class="fas fa-handshake mr-2"></i> Find Best Seller Now
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button id="share-result-btn" class="mt-6 w-full bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-md font-medium text-lg transition duration-300">
+                                <i class="fas fa-share-alt mr-2"></i> Share Report (PDF/WhatsApp)
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="marketplace" class="page-content p-4 sm:p-6">
+                    <div class="flex justify-between items-center mb-6 flex-wrap">
+                        <h1 class="text-2xl font-semibold text-gray-800 mb-2 sm:mb-0">AgriPulse Marketplace</h1>
+                        <button id="post-listing-btn" class="bg-primary hover:bg-primary-dark text-white px-4 py-2 rounded-md text-sm font-medium flex items-center transition duration-300">
+                            <i class="fas fa-plus mr-2"></i> Post a Listing
+                        </button>
+                    </div>
+                    
+                    <div class="bg-white rounded-lg shadow p-6 mb-6">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center">
+                            <i class="fas fa-chart-line mr-2 text-blue-600"></i> Local Price Discovery (Maize)
+                        </h2>
+                         <div class="chart-container" style="height: 150px;"><canvas id="price-discovery-chart"></canvas></div>
+                         <p class="text-sm text-gray-600 mt-2">Current Avg. Price: **Ksh 3,950/bag** | Last Week: Ksh 3,800/bag (4% increase)</p>
+                    </div>
+
+                    <div class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4 mb-6 p-4 bg-white rounded-lg shadow transition duration-300">
+                        <input type="text" id="marketplace-search" placeholder="Search products, services, or sellers..." class="w-full sm:flex-grow border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary transition duration-300">
+                        <div class="relative w-full sm:w-48">
+                            <select id="marketplace-filter" class="block w-full appearance-none bg-white border border-gray-300 hover:border-gray-400 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition duration-300">
+                                <option value="all">Filter by Category (All)</option>
+                                <option value="pesticide">Pesticides/Fungicides</option>
+                                <option value="seed">Seeds/Seedlings</option>
+                                <option value="fertilizer">Fertilizer</option>
+                                <option value="livestock">Livestock/Poultry</option>
+                                <option value="service">Farm Services</option>
+                            </select>
+                            <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                <i class="fas fa-chevron-down"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div id="marketplace-loading-message" class="text-center py-10">
+                        <i class="fas fa-spinner fa-spin text-4xl text-primary mb-4"></i>
+                        <p class="text-lg text-gray-600">Loading marketplace listings...</p>
+                    </div>
+                    
+                    <div id="marketplace-listings-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                        </div>
+                </div>
+                
+                <div id="financials" class="page-content p-4 sm:p-6">
+                    <h1 class="text-2xl font-semibold text-gray-800 mb-6">Financial Overview</h1>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-6">
+                        <div class="bg-white rounded-lg shadow p-6 border-l-4 border-primary transition duration-300">
+                            <p class="text-sm font-medium text-gray-500">Total Revenue (YTD)</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-1">KSh 12,540,000</p>
+                        </div>
+                        <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500 transition duration-300">
+                            <p class="text-sm font-medium text-gray-500">Total Expenses (YTD)</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-1">KSh 8,100,000</p>
+                        </div>
+                        <div class="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-500 transition duration-300">
+                            <p class="text-sm font-medium text-gray-500">Net Profit Margin</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-1">35.5%</p>
+                        </div>
+                        <div class="bg-white rounded-lg shadow p-6 border-l-4 border-blue-500 transition duration-300">
+                            <p class="text-sm font-medium text-gray-500">Next Payment Due</p>
+                            <p class="text-3xl font-bold text-gray-900 mt-1">KSh 450,000</p>
+                        </div>
+                    </div>
+                    <div class="bg-white rounded-lg shadow p-6 transition duration-300">
+                        <h3 class="text-lg font-medium text-gray-800 mb-4">Monthly Cash Flow (KSh)</h3>
+                        <div class="chart-container"><canvas id="cash-flow-chart" height="300"></canvas></div>
+                    </div>
+                </div>
+                
+                 <div id="planning" class="page-content p-4 sm:p-6">
+                    <h1 class="text-2xl font-semibold text-gray-800 mb-6">Planning & "What-If" Scenario Modeling</h1>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-1 bg-white rounded-lg shadow p-6 transition duration-300">
+                            <h2 class="text-xl font-semibold text-gray-800 mb-4">Yield Model Inputs</h2>
+                            <p class="text-gray-600 mb-4">Adjust the variables below to see the impact on your **Yield Forecast Chart**.</p>
+
+                            <div class="space-y-4">
+                                <div class="input-group">
+                                    <label for="model-rainfall" class="block text-sm font-medium text-gray-700">Forecasted Rainfall (mm/week)</label>
+                                    <input type="range" id="model-rainfall" min="0" max="100" value="20" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                    <p class="text-sm text-gray-500 mt-1">Value: <span id="model-rainfall-val" class="font-medium">20 mm</span></p>
+                                </div>
+                                
+                                <div class="input-group">
+                                    <label for="model-fertilizer" class="block text-sm font-medium text-gray-700">Fertilizer Rate (kg/ha)</label>
+                                    <select id="model-fertilizer" class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary">
+                                        <option value="low">Low (100 kg/ha)</option>
+                                        <option value="medium" selected>Medium (150 kg/ha)</option>
+                                        <option value="high">High (200 kg/ha)</option>
+                                        <option value="premium">Premium (200 kg/ha + Micronutrients)</option>
+                                    </select>
+                                </div>
+
+                                <div class="input-group">
+                                    <label for="model-pest" class="block text-sm font-medium text-gray-700">Pest/Disease Severity</label>
+                                    <input type="range" id="model-pest" min="0" max="10" value="3" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                                    <p class="text-sm text-gray-500 mt-1">Value: <span id="model-pest-val" class="font-medium">3 (Low)</span></p>
+                                </div>
+                            </div>
+
+                            <button id="run-model-btn" class="mt-6 w-full bg-red-600 hover:bg-red-700 text-white py-2 rounded-md font-medium transition duration-300">
+                                <i class="fas fa-calculator mr-2"></i> Run Scenario Model
+                            </button>
+                        </div>
+
+                        <div class="lg:col-span-2 bg-white rounded-lg shadow p-6 transition duration-300">
+                            <h2 class="text-xl font-semibold text-gray-800 mb-4">Scenario Results: Projected Yield</h2>
+                            <div class="chart-container" style="height: 300px;"><canvas id="scenario-chart"></canvas></div>
+
+                            <div class="mt-4 p-4 border-t border-gray-200">
+                                <p class="text-lg font-bold text-gray-800">Predicted Outcome:</p>
+                                <p class="text-2xl font-extrabold text-blue-600 mt-1">8.5 tons/ha</p>
+                                <p id="scenario-summary" class="text-sm text-gray-600 mt-2">
+                                    Based on the 'Medium' fertilizer rate and 20mm of rain, the forecast is strong, representing a **+9% increase** over the baseline.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="doctor" class="page-content p-4 sm:p-6">
+                    <h1 class="text-2xl font-semibold text-gray-800 mb-6">Real-time Agricultural Doctor</h1>
+                    <div class="bg-white rounded-lg shadow p-6 mb-6 transition duration-300">
+                        <div class="flex items-center mb-4">
+                            <i class="fas fa-stethoscope text-4xl text-blue-600 mr-4"></i>
+                            <h2 class="text-xl font-semibold text-gray-800">Connect with an Expert</h2>
+                        </div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="border border-gray-200 rounded-lg p-4 text-center transition duration-300 hover:border-primary">
+                                <i class="fas fa-seedling text-3xl text-primary mb-2"></i>
+                                <h4 class="font-bold">Crop Specialist (Agronomist)</h4>
+                                <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full text-green-800 bg-green-100">
+                                    <i class="fas fa-circle text-primary mr-2 text-xs animate-pulse"></i> Available Now
+                                </span>
+                                <button class="mt-3 w-full bg-primary hover:bg-primary-dark text-white py-2 rounded-md text-sm font-medium transition duration-300" onclick="alert('Initiating video call with Agronomist...');">
+                                    <i class="fas fa-video mr-2"></i> Start Video Call
+                                </button>
+                            </div>
+                            <div class="border border-gray-200 rounded-lg p-4 text-center transition duration-300 hover:border-yellow-500">
+                                <i class="fas fa-paw text-3xl text-red-500 mb-2"></i>
+                                <h4 class="font-bold">Livestock Vet (Veterinarian)</h4>
+                                <span class="inline-flex items-center px-3 py-1 text-sm font-medium rounded-full text-yellow-800 bg-yellow-100">
+                                    <i class="fas fa-circle text-yellow-500 mr-2 text-xs"></i> Busy (3 min wait)
+                                </span>
+                                <button class="mt-3 w-full bg-yellow-600 hover:bg-yellow-700 text-white py-2 rounded-md text-sm font-medium transition duration-300" onclick="alert('Joining queue for Veterinarian...');">
+                                    <i class="fas fa-phone mr-2"></i> Request Call
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="settings" class="page-content p-4 sm:p-6">
+                    <h1 class="text-2xl font-semibold text-gray-800 mb-6">Account & App Settings</h1>
+                    <div class="bg-white rounded-lg shadow p-6 transition duration-300">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4">App Preferences & Theme</h2>
+                        <ul class="divide-y divide-gray-200">
+                            <li class="py-4 flex items-center justify-between flex-wrap">
+                                <span class="text-lg text-gray-700 mb-2 sm:mb-0">Application Theme Selector (10 Options)</span>
+                                <div class="relative inline-block w-full sm:w-48">
+                                    <select id="theme-selector" class="block w-full appearance-none bg-white border border-gray-300 hover:border-gray-400 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary transition duration-300">
+                                        <option value="theme-green">1. AgriPulse Green (Default)</option>
+                                        <option value="theme-blue">2. Modern Blue</option>
+                                        <option value="theme-earth">3. Warm Earthy</option>
+                                        <option value="theme-dark" disabled>4. Dark Mode (Coming Soon)</option>
+                                        <option value="theme-other1" disabled>5. Theme Placeholder 5</option>
+                                        <option value="theme-other2" disabled>6. Theme Placeholder 6</option>
+                                        <option value="theme-other3" disabled>7. Theme Placeholder 7</option>
+                                        <option value="theme-other4" disabled>8. Theme Placeholder 8</option>
+                                        <option value="theme-other5" disabled>9. Theme Placeholder 9</option>
+                                        <option value="theme-other6" disabled>10. Theme Placeholder 10</option>
+                                    </select>
+                                    <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                                        <i class="fas fa-chevron-down"></i>
+                                    </div>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+    </div>
+
+    <button id="floating-chat-doodle" class="bg-blue-600 hover:bg-blue-700 text-white flex items-center justify-center" title="Open AgriBot Chat">
+        <i class="fas fa-robot text-3xl"></i>
+    </button>
+
+    <div id="chat-modal-container" class="bg-white hidden flex-col transition-all duration-300">
+        <div class="p-3 border-b border-gray-200 bg-secondary rounded-t-lg flex justify-between items-center">
+            <h4 class="text-white font-semibold">AgriBot Assistant: <span id="chat-field-name"></span></h4>
+            <button id="close-chat-modal" class="text-gray-300 hover:text-white"><i class="fas fa-times"></i></button>
+        </div>
+        <div id="chat-messages" class="flex-grow p-4 space-y-4 overflow-y-auto">
+            <div class="chat-bubble ai-bubble border border-gray-200">
+                <p>Hello! I am AgriBot, your personal farm assistant.</p>
+                <p class="mt-2">Ask me anything about your farm operation.</p>
+            </div>
+        </div>
+        <div class="border-t border-gray-200 p-3">
+            <form id="chat-form" class="flex">
+                <input type="text" id="chat-input" placeholder="Ask AgriBot..." class="flex-grow border border-gray-300 rounded-l-lg p-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500" required>
+                <button type="submit" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-r-lg text-sm font-medium transition duration-300">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <div id="share-modal" class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Share Report: AI Diagnosis</h3>
+            <p class="text-gray-600 mb-4">Choose your preferred method to receive the PDF report.</p>
+            <div class="space-y-4">
+                <div>
+                    <label for="share-email" class="block text-sm font-medium text-gray-700 mb-1">Send via Email:</label>
+                    <input type="email" id="share-email" class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary" placeholder="Enter email address" value="john@agrifarm.com">
+                    <button id="send-email-btn" class="mt-2 w-full bg-green-500 hover:bg-green-600 text-white py-2 rounded-md font-medium transition duration-300 flex items-center justify-center">
+                        <i class="fas fa-envelope mr-2"></i> Send PDF
+                    </button>
+                </div>
+                <div>
+                    <label for="share-whatsapp" class="block text-sm font-medium text-gray-700 mb-1">Send via WhatsApp:</label>
+                    <input type="text" id="share-whatsapp" class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary" placeholder="Enter WhatsApp number" value="+254701234567">
+                    <button id="send-whatsapp-btn" class="mt-2 w-full bg-whatsapp hover:bg-whatsapp-dark text-white py-2 rounded-md font-medium transition duration-300 flex items-center justify-center">
+                        <i class="fab fa-whatsapp mr-2"></i> Send via WhatsApp
+                    </button>
+                </div>
+            </div>
+            <button id="close-share-modal" class="mt-6 text-gray-500 hover:text-gray-800 float-right">Close</button>
+        </div>
+    </div>
+    
+    <div id="contact-modal" class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Contact Seller/Buyer: <span id="contact-seller-name"></span></h3>
+            <p class="text-gray-600 mb-4">Regarding listing: <span id="contact-listing-title" class="font-medium"></span></p>
+            <div class="space-y-3">
+                <a id="contact-email-link" href="#" class="block bg-blue-500 hover:bg-blue-600 text-white text-center py-2 rounded-md font-medium flex items-center justify-center transition duration-300" target="_blank">
+                    <i class="fas fa-envelope mr-2"></i> Email <span id="contact-email-text"></span>
+                </a>
+                <a id="contact-whatsapp-link" href="#" class="block bg-whatsapp hover:bg-whatsapp-dark text-white text-center py-2 rounded-md font-medium flex items-center justify-center transition duration-300" target="_blank">
+                    <i class="fab fa-whatsapp mr-2"></i> WhatsApp Chat
+                </a>
+                <a id="contact-phone-link" href="#" class="block bg-gray-500 hover:bg-gray-600 text-white text-center py-2 rounded-md font-medium flex items-center justify-center transition duration-300">
+                    <i class="fas fa-phone mr-2"></i> Call <span id="contact-phone-text"></span>
+                </a>
+                <p id="contact-no-phone" class="text-sm text-center text-red-500 hidden"><i class="fas fa-info-circle mr-1"></i> Phone number not available.</p>
+            </div>
+            <button id="close-contact-modal" class="mt-6 text-gray-500 hover:text-gray-800 float-right">Close</button>
+        </div>
+    </div>
+    
+    <div id="post-listing-modal" class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Post a New Marketplace Listing</h3>
+            <form id="post-listing-form" class="space-y-4">
+                <div>
+                    <label for="listing-title" class="block text-sm font-medium text-gray-700">Listing Title</label>
+                    <input type="text" id="listing-title" required class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary">
+                </div>
+                <div>
+                    <label for="listing-price" class="block text-sm font-medium text-gray-700">Price (KSh)</label>
+                    <input type="number" id="listing-price" required class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary">
+                </div>
+                <div>
+                    <label for="listing-category" class="block text-sm font-medium text-gray-700">Category</label>
+                    <select id="listing-category" required class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary">
+                        <option value="seed">Seeds/Seedlings</option>
+                        <option value="fertilizer">Fertilizer</option>
+                        <option value="pesticide">Pesticides/Fungicides</option>
+                        <option value="livestock">Livestock/Poultry</option>
+                        <option value="service">Farm Services</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="listing-description" class="block text-sm font-medium text-gray-700">Description</label>
+                    <textarea id="listing-description" rows="3" class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary"></textarea>
+                </div>
+                <button type="submit" class="w-full bg-primary hover:bg-primary-dark text-white py-2 rounded-md font-medium transition duration-300">Post Listing</button>
+            </form>
+            <button id="close-post-listing-modal" class="mt-4 text-gray-500 hover:text-gray-800 float-right">Close</button>
+        </div>
+    </div>
+    
+    <div id="add-task-modal" class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-sm p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Add New Farm Task</h3>
+            <form id="add-task-form" class="space-y-4">
+                <div>
+                    <label for="task-title" class="block text-sm font-medium text-gray-700">Task Title</label>
+                    <input type="text" id="task-title" required class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary">
+                </div>
+                <div>
+                    <label for="task-date" class="block text-sm font-medium text-gray-700">Due Date</label>
+                    <input type="date" id="task-date" required class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary">
+                </div>
+                <div>
+                    <label for="task-priority" class="block text-sm font-medium text-gray-700">Priority</label>
+                    <select id="task-priority" class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary">
+                        <option value="high">High</option>
+                        <option value="medium" selected>Medium</option>
+                        <option value="low">Low</option>
+                    </select>
+                </div>
+                <button type="submit" class="w-full bg-primary hover:bg-primary-dark text-white py-2 rounded-md font-medium transition duration-300">Create Task</button>
+            </form>
+            <button id="close-add-task-modal" class="mt-4 text-gray-500 hover:text-gray-800 float-right">Close</button>
+        </div>
+    </div>
+    
+    <div id="inventory-modal" class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+        <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl p-6">
+            <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Full Inventory Management</h3>
+            <div id="inventory-full-list" class="overflow-x-auto">
+                </div>
+            <button id="close-inventory-modal" class="mt-6 text-gray-500 hover:text-gray-800 float-right">Close</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
