@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="en" class="theme-green">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>AgriPulse Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css"> 
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.3.0/dist/chart.umd.min.js"></script>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+</head>
+
+<body class="bg-gray-50 font-sans">
+
+    <div id="auth" class="min-h-screen flex items-center justify-center bg-gray-100">
+        <div class="max-w-md w-full space-y-8 p-10 bg-white rounded-xl shadow-2xl">
+            <div class="text-center">
+                <div class="text-3xl font-bold text-primary flex items-center justify-center">
+                    <i class="fas fa-leaf mr-2"></i>
+                    AgriPulse
+                </div>
+                <div class="text-xs text-gray-500 font-medium tracking-wider uppercase mt-1">Smart Farming, Sustainable Future</div>
+                <h2 id="auth-title" class="mt-6 text-2xl font-extrabold text-gray-900">
+                    Sign In to your account
+                </h2>
+            </div>
+            <form class="mt-8 space-y-6" id="auth-form" action="#" method="POST">
+                <input type="hidden" id="auth-mode" value="login">
+                <div class="rounded-md shadow-sm -space-y-px">
+                    <div>
+                        <label for="email-address" class="sr-only">Email address</label>
+                        <input id="email-address" name="email" type="email" autocomplete="email" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm" placeholder="Email address">
+                    </div>
+                    <div id="name-field" class="hidden">
+                        <label for="full-name" class="sr-only">Full Name</label>
+                        <input id="full-name" name="name" type="text" autocomplete="name" class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm" placeholder="Full Name">
+                    </div>
+                    <div>
+                        <label for="password" class="sr-only">Password</label>
+                        <input id="password" name="password" type="password" autocomplete="current-password" required class="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-primary focus:border-primary focus:z-10 sm:text-sm" placeholder="Password">
+                    </div>
+                </div>
+
+                <div>
+                    <button type="submit" id="auth-submit-btn" class="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-primary hover:bg-primary-dark transition duration-300 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary">
+                        Sign In
+                    </button>
+                </div>
+                <div class="text-center text-sm">
+                    <a href="javascript:void(0)" id="toggle-auth-mode" class="font-medium text-primary hover:text-primary-dark transition duration-300">
+                        Don't have an account? Sign Up
+                    </a>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="main-app" class="min-h-screen flex flex-col hidden">
+        
+        <header class="bg-white shadow-sm sticky top-0 z-20">
+            <div class="max-w-full mx-auto px-4 sm:px-6 lg:px-8 py-2 flex justify-between items-center flex-wrap">
+                
+                <div class="flex items-center">
+                    <button id="mobile-menu-btn" class="text-gray-600 hover:text-gray-900 mr-4 p-1 rounded lg:hidden transition duration-300" title="Open Menu">
+                        <i class="fas fa-bars text-xl"></i>
+                    </button>
+                    <div class="flex flex-col items-start mb-2 sm:mb-0">
+                        <div class="text-2xl font-bold text-primary flex items-center">
+                            <i class="fas fa-leaf mr-2"></i>
+                            AgriPulse
+                        </div>
+                        <div class="text-xs text-gray-500 font-medium tracking-wider uppercase mt-0.5">Smart Farming, Sustainable Future</div>
+                    </div>
+                </div>
+
+                <div class="flex items-center space-x-2 sm:space-x-4 flex-grow sm:flex-grow-0 justify-end w-full lg:w-auto mt-2 lg:mt-0">
+                    <div class="relative w-full sm:w-auto">
+                        <select id="context-selector" class="block appearance-none bg-white border border-gray-300 hover:border-gray-400 px-4 py-2 pr-8 rounded shadow leading-tight focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary text-sm font-medium transition duration-300 w-full">
+                            </select>
+                        <div class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-gray-700">
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
+
+                    <div class="flex space-x-2">
+                        <button id="export-btn" class="bg-primary hover:bg-primary-dark text-white px-2 sm:px-3 py-2 rounded-md text-sm font-medium flex items-center transition duration-300">
+                            <i class="fas fa-file-export mr-0 sm:mr-2"></i> <span class="hidden sm:inline">Export Data</span>
+                        </button>
+                        <button id="notifications-btn" class="relative bg-gray-100 p-2 rounded-full hover:bg-gray-200 transition duration-300" title="Notifications">
+                            <i class="fas fa-bell text-gray-600"></i>
+                            <span class="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-600 rounded-full">3</span>
+                        </button>
+                        <button id="logout-btn" class="bg-gray-100 p-2 rounded-full hover:bg-gray-200 transition duration-300" title="Logout">
+                            <i class="fas fa-sign-out-alt text-gray-600"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <main class="flex-grow flex lg:flex-row">
+            
+            <div id="sidebar-overlay" class="sidebar-overlay"></div>
+
+            <nav id="sidebar" class="fixed inset-y-0 left-0 z-40 transform -translate-x-full transition-transform duration-300 lg:relative lg:translate-x-0 bg-secondary text-white w-64 flex-shrink-0">
+                <div class="p-4 sticky top-0 lg:top-[82px]">
+                    <div class="px-4 py-3 text-sm text-gray-300">
+                        <div class="font-medium" id="user-name"></div>
+                        <div id="user-email"></div>
+                    </div>
+                    <hr class="border-border-color my-2">
+                    <ul class="mt-4 space-y-1">
+                        <li>
+                            <a href="javascript:void(0)" class="nav-link block px-4 py-2 rounded-md font-medium text-white bg-secondary-active hover:bg-secondary-hover transition duration-150" data-page="dashboard">
+                                <i class="fas fa-tachometer-alt mr-3"></i> Dashboard
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0)" class="nav-link block px-4 py-2 rounded-md font-medium text-gray-300 hover:bg-secondary-hover hover:text-white transition duration-150" data-page="tasks">
+                                <i class="fas fa-calendar-check mr-3"></i> Tasks & Inventory
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0)" class="nav-link block px-4 py-2 rounded-md font-medium text-gray-300 hover:bg-secondary-hover hover:text-white transition duration-150" data-page="upload">
+                                <i class="fas fa-microscope mr-3"></i> Crop Doctor/Upload
+                            </a>
+                        </li>
+                        <hr class="border-border-color my-2">
+                        <li>
+                            <a href="javascript:void(0)" class="nav-link block px-4 py-2 rounded-md font-medium text-gray-300 hover:bg-secondary-hover hover:text-white transition duration-150" data-page="marketplace">
+                                <i class="fas fa-store mr-3"></i> Marketplace & Prices
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0)" class="nav-link block px-4 py-2 rounded-md font-medium text-gray-300 hover:bg-secondary-hover hover:text-white transition duration-150" data-page="financials">
+                                <i class="fas fa-wallet mr-3"></i> Financials
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0)" class="nav-link block px-4 py-2 rounded-md font-medium text-gray-300 hover:bg-secondary-hover hover:text-white transition duration-150" data-page="planning">
+                                <i class="fas fa-chart-line mr-3"></i> Planning & Modeling
+                            </a>
+                        </li>
+                        <hr class="border-border-color my-2">
+                         <li>
+                            <a href="javascript:void(0)" class="nav-link block px-4 py-2 rounded-md font-medium text-gray-300 hover:bg-secondary-hover hover:text-white transition duration-150" data-page="doctor">
+                                <i class="fas fa-user-md mr-3"></i> Real-time Doctor
+                            </a>
+                        </li>
+                        <li>
+                            <a href="javascript:void(0)" class="nav-link block px-4 py-2 rounded-md font-medium text-gray-300 hover:bg-secondary-hover hover:text-white transition duration-150" data-page="settings">
+                                <i class="fas fa-cog mr-3"></i> Settings
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </nav>
+
+            <div class="flex-grow overflow-y-auto">
+
+                <div id="dashboard" class="page-content active p-4 sm:p-6 fade-in">
+                    <h1 class="text-2xl font-semibold text-gray-800 mb-6">Dashboard Overview: <span id="current-field-name"></span></h1>
+                    
+                    <div id="field-type-display" class="bg-blue-50 text-blue-800 font-medium py-2 px-4 rounded-md mb-6 border border-blue-200 shadow-sm">
+                        <i class="fas fa-tag mr-2"></i> Field Type: <span id="current-field-type"></span>
+                    </div>
+
+                    <div id="dynamic-dashboard-content">
+                        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                            <div class="lg:col-span-2 bg-white rounded-lg shadow p-2 transition duration-300">
+                                <h3 class="text-lg font-medium text-gray-800 mb-2 px-4 pt-2">Field Location & Zoning</h3>
+                                <div id="map-container" style="height: 350px;" class="rounded-lg"></div>
+                                <div class="p-4 flex items-center justify-between text-sm flex-wrap">
+                                    <div id="map-layer-controls" class="mb-2 sm:mb-0">
+                                        <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-full text-xs layer-btn active" data-layer="default">Default View</button>
+                                        <button class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-3 py-1 rounded-full text-xs layer-btn" data-layer="moisture">Soil Moisture Map</button>
+                                    </div>
+                                    <p class="text-gray-500 text-xs">Lat/Lon: <span id="map-coords"></span></p>
+                                </div>
+                            </div>
+                            
+                            <div class="space-y-6">
+                                <div class="bg-white rounded-lg shadow p-6 border-l-4 border-primary transition duration-300 context-dependent">
+                                    <p class="text-sm font-medium text-gray-500" id="kpi-1-title">Yield Forecast (Tons/Ha)</p>
+                                    <p class="text-3xl font-bold text-gray-900 mt-1" id="kpi-1-value">...</p>
+                                    <div class="text-sm mt-2 text-primary" id="kpi-1-description">...</div>
+                                </div>
+                                <div class="bg-white rounded-lg shadow p-6 border-l-4 border-red-500 transition duration-300 context-dependent">
+                                    <p class="text-sm font-medium text-gray-500">Critical Alerts</p>
+                                    <p class="text-3xl font-bold text-red-500 mt-1" id="alert-count">3</p>
+                                    <div class="text-sm mt-2 text-red-500" id="alert-detail">Low Moisture & Fungus Risk</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div id="dynamic-chart-row" class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                            <div class="bg-white rounded-lg shadow p-6 transition duration-300 context-dependent">
+                                <h3 class="text-lg font-medium text-gray-800 mb-4">Yield Forecast Trend</h3>
+                                <div class="chart-container" style="height: 250px;"><canvas id="yield-forecast-chart"></canvas></div>
+                            </div>
+                            <div class="bg-white rounded-lg shadow p-6 transition duration-300 context-dependent">
+                                <h3 class="text-lg font-medium text-gray-800 mb-4">Soil Moisture & Rainfall (Last 7 Days)</h3>
+                                <div class="chart-container" style="height: 250px;"><canvas id="moisture-rainfall-chart"></canvas></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="tasks" class="page-content p-4 sm:p-6">
+                    <h1 class="text-2xl font-semibold text-gray-800 mb-6">Tasks & Inventory Management</h1>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="lg:col-span-2 bg-white rounded-lg shadow p-6 transition duration-300">
+                            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex justify-between items-center"> Scheduled Tasks <i class="fas fa-list-check text-primary"></i> </h2>
+                            <div id="tasks-list" class="space-y-3">
+                            </div>
+                            <button id="add-task-btn" class="mt-4 w-full bg-primary hover:bg-primary-dark text-white py-2 rounded-md text-sm font-medium transition duration-300">
+                                <i class="fas fa-plus mr-2"></i> Add New Task
+                            </button>
+                        </div>
+                        <div class="bg-white rounded-lg shadow p-6 transition duration-300">
+                            <h2 class="text-xl font-semibold text-gray-800 mb-4 flex justify-between items-center"> Critical Inventory <i class="fas fa-warehouse text-primary"></i> </h2>
+                            <div id="inventory-list" class="space-y-4">
+                            </div>
+                            <button id="manage-inventory-btn" class="mt-4 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-md text-sm font-medium transition duration-300"> View/Manage All </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="upload" class="page-content p-4 sm:p-6">
+                    <h1 class="text-2xl font-semibold text-gray-800 mb-6">Crop Doctor & Data Upload</h1>
+
+                    <div class="bg-white rounded-lg shadow p-6 mb-6">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center"><i class="fas fa-camera mr-2 text-red-500"></i> Crop Doctor Diagnosis</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                            <div class="col-span-1 md:col-span-2">
+                                <div class="file-drop-area p-8 rounded-lg cursor-pointer transition duration-300" id="crop-doctor-drop-area">
+                                    <div class="text-center">
+                                        <i class="fas fa-image text-gray-400 text-4xl mb-2"></i>
+                                        <h3 class="text-lg font-medium text-gray-800 mb-1">Drag and drop crop photo here</h3>
+                                        <p class="text-gray-600 mb-4">or click to browse (JPEG, PNG, max 10MB)</p>
+                                        <input type="file" id="crop-photo-upload" class="hidden" accept="image/jpeg, image/png">
+                                    </div>
+                                </div>
+                                <div id="photo-preview-container" class="mt-4 hidden relative">
+                                    <img id="photo-preview" class="w-full h-auto rounded-lg shadow-md object-cover">
+                                    <button id="remove-photo-btn" class="absolute top-2 right-2 bg-red-500 hover:bg-red-600 text-white p-2 rounded-full shadow-lg transition duration-300" title="Remove Photo">
+                                        <i class="fas fa-times"></i>
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="col-span-1">
+                                <div id="diagnosis-result" class="bg-gray-50 rounded-lg p-4 h-full flex flex-col justify-between border">
+                                    <div>
+                                        <h3 class="text-xl font-semibold text-gray-800 mb-2 flex items-center"><i class="fas fa-heartbeat mr-2 text-red-500"></i> Diagnosis</h3>
+                                        <p id="diagnosis-status" class="text-gray-500 italic">Upload a photo to start analysis.</p>
+                                    </div>
+                                    <button id="run-diagnosis-btn" class="mt-4 w-full bg-red-500 hover:bg-red-600 text-white py-2 rounded-md font-medium transition duration-300 hidden disabled:opacity-50" disabled>
+                                        <i class="fas fa-stethoscope mr-2"></i> Run Diagnosis
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-4 flex items-center"><i class="fas fa-file-upload mr-2 text-primary"></i> Batch Data Upload</h2>
+                        <p class="text-gray-600 mb-4">Upload CSV files for historical data import (e.g., yield logs, sensor data).</p>
+                        <div class="flex flex-col sm:flex-row space-y-4 sm:space-y-0 sm:space-x-4">
+                            <input type="file" id="batch-upload-file" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-primary file:text-white hover:file:bg-primary-dark" accept=".csv">
+                            <button id="run-batch-upload" class="bg-gray-500 hover:bg-gray-600 text-white py-2 px-4 rounded-md font-medium text-sm transition duration-300 disabled:opacity-50" disabled>Process Batch</button>
+                        </div>
+                        <div id="batch-upload-status" class="mt-4 text-sm text-gray-600"></div>
+                    </div>
+                </div>
+
+                <div id="marketplace" class="page-content p-4 sm:p-6">
+                    <h1 class="text-2xl font-semibold text-gray-800 mb-6">Marketplace & Price Discovery</h1>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                        <div class="bg-white rounded-lg shadow p-6 transition duration-300 lg:col-span-2">
+                            <h2 class="text-xl font-semibold text-gray-800 mb-4">Commodity Price Trends (Maize)</h2>
+                            <div class="chart-container" style="height: 300px;"><canvas id="price-discovery-chart"></canvas></div>
+                        </div>
+                        <div class="bg-white rounded-lg shadow p-6 transition duration-300">
+                            <h2 class="text-xl font-semibold text-gray-800 mb-4">Local Prices Snapshot</h2>
+                            <ul class="space-y-3 text-sm" id="local-prices-list">
+                                <li class="flex justify-between items-center"><span class="font-medium text-gray-700">Maize (90kg)</span><span class="text-primary font-bold">KES 3,800</span></li>
+                                <li class="flex justify-between items-center"><span class="font-medium text-gray-700">Beans (90kg)</span><span class="text-primary font-bold">KES 9,200</span></li>
+                                <li class="flex justify-between items-center"><span class="font-medium text-gray-700">Urea (50kg)</span><span class="text-primary font-bold">KES 7,800</span></li>
+                            </ul>
+                            <p class="text-xs text-gray-500 mt-4 italic">Source: Local Aggregator, 24hrs ago</p>
+                            <button class="mt-4 w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-md text-sm font-medium transition duration-300">Compare Pricing</button>
+                        </div>
+                    </div>
+
+                    <h2 class="text-2xl font-semibold text-gray-800 mb-4 flex justify-between items-center">
+                        Local Listings 
+                        <button id="open-post-listing-modal-btn" class="bg-primary hover:bg-primary-dark text-white py-1 px-3 rounded-md text-sm font-medium transition duration-300">
+                            <i class="fas fa-plus mr-1"></i> Post Listing
+                        </button>
+                    </h2>
+                    
+                    <div id="marketplace-listings" class="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-6">
+                        </div>
+                </div>
+
+                <div id="financials" class="page-content p-4 sm:p-6">
+                    <h1 class="text-2xl font-semibold text-gray-800 mb-6">Financials & Profitability</h1>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+                        <div class="lg:col-span-2 bg-white rounded-lg shadow p-6 transition duration-300">
+                            <h2 class="text-xl font-semibold text-gray-800 mb-4">Cash Flow Projection (Next 6 Months)</h2>
+                            <div class="chart-container" style="height: 300px;"><canvas id="cash-flow-chart"></canvas></div>
+                        </div>
+                        <div class="space-y-6">
+                            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-green-500 transition duration-300">
+                                <p class="text-sm font-medium text-gray-500">Gross Margin (Projected)</p>
+                                <p class="text-3xl font-bold text-green-500 mt-1">45%</p>
+                                <div class="text-sm mt-2 text-green-500">+2% vs. last season</div>
+                            </div>
+                            <div class="bg-white rounded-lg shadow p-6 border-l-4 border-yellow-500 transition duration-300">
+                                <p class="text-sm font-medium text-gray-500">Total Farm Debt</p>
+                                <p class="text-3xl font-bold text-gray-900 mt-1">KES 1.2M</p>
+                                <div class="text-sm mt-2 text-yellow-500">Interest rate: 14%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-lg shadow p-6 transition duration-300">
+                            <h2 class="text-xl font-semibold text-gray-800 mb-4">Cost of Production Breakdown (YTD)</h2>
+                            <div class="chart-container" style="height: 250px;"><canvas id="cost-breakdown-chart"></canvas></div>
+                        </div>
+                         <div class="bg-white rounded-lg shadow p-6 transition duration-300">
+                            <h2 class="text-xl font-semibold text-gray-800 mb-4">Revenue by Field/Operation</h2>
+                            <div class="chart-container" style="height: 250px;"><canvas id="revenue-by-field-chart"></canvas></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="planning" class="page-content p-4 sm:p-6">
+                    <h1 class="text-2xl font-semibold text-gray-800 mb-6">Planning & Modeling</h1>
+                    
+                    <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <div class="lg:col-span-3 bg-white rounded-lg shadow p-6 transition duration-300">
+                            <h2 class="text-xl font-semibold text-gray-800 mb-4">Scenario Planner: Fertilizer Application</h2>
+                            <div class="chart-container" style="height: 300px;"><canvas id="scenario-planner-chart"></canvas></div>
+                        </div>
+                        <div class="bg-white rounded-lg shadow p-6 transition duration-300">
+                            <h2 class="text-xl font-semibold text-gray-800 mb-4">Inputs</h2>
+                            <form id="scenario-form" class="space-y-4">
+                                <div>
+                                    <label for="fert-rate" class="block text-sm font-medium text-gray-700">Fertilizer Rate (kg/ha)</label>
+                                    <input type="range" id="fert-rate" min="50" max="250" value="150" step="10" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-lg">
+                                    <span id="fert-rate-display" class="text-primary font-medium text-lg mt-1 block text-center">150 kg/ha</span>
+                                </div>
+                                <div>
+                                    <label for="irrigation-level" class="block text-sm font-medium text-gray-700">Irrigation Level (%)</label>
+                                    <input type="range" id="irrigation-level" min="0" max="100" value="70" step="5" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer range-lg">
+                                    <span id="irrigation-level-display" class="text-primary font-medium text-lg mt-1 block text-center">70%</span>
+                                </div>
+                                <button type="submit" class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-md font-medium transition duration-300">Run Simulation</button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mt-6">
+                        <div class="lg:col-span-2 bg-white rounded-lg shadow p-6 transition duration-300">
+                            <h2 class="text-xl font-semibold text-gray-800 mb-4">Weather Forecast Impact</h2>
+                            <div class="chart-container" style="height: 250px;"><canvas id="precipitation-forecast-chart"></canvas></div>
+                        </div>
+                        <div class="bg-white rounded-lg shadow p-6 transition duration-300">
+                            <h2 class="text-xl font-semibold text-gray-800 mb-4">Summary</h2>
+                            <p class="text-gray-600">The current simulation projects a **7.8 tons/ha** yield, with a **45%** gross margin. Increasing fertilizer to **200 kg/ha** may boost yield to **8.2 tons/ha** but reduce margin to **42%**.</p>
+                            <button class="mt-4 w-full bg-primary hover:bg-primary-dark text-white py-2 rounded-md font-medium text-sm transition duration-300">Save Scenario</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="doctor" class="page-content p-4 sm:p-6">
+                    <h1 class="text-2xl font-semibold text-gray-800 mb-6">Real-time Crop Doctor</h1>
+                    
+                    <div class="bg-white rounded-lg shadow p-6">
+                        <div class="flex items-center justify-between border-b pb-4 mb-4">
+                            <h2 class="text-xl font-semibold text-gray-800 flex items-center"><i class="fas fa-comment-dots mr-2 text-primary"></i> Chat with the Doctor</h2>
+                            <span class="text-sm font-medium text-gray-500">Field: <span id="chat-field-name"></span></span>
+                        </div>
+                        
+                        <div id="chat-window" class="h-96 overflow-y-auto border rounded-lg p-4 space-y-4 mb-4 bg-gray-50">
+                            <div class="chat-bubble agripulse-bubble bg-gray-200 text-gray-800 self-start">
+                                Hello, I am your AgriPulse Crop Doctor Assistant. I can help diagnose issues, provide treatment recommendations, and answer any farming questions you have about your **<span id="initial-chat-field">Maize Field 1</span>**. How can I help?
+                            </div>
+                        </div>
+
+                        <form id="chat-form" class="flex space-x-3">
+                            <input type="text" id="chat-input" placeholder="Ask about symptoms, pests, or treatments..." class="flex-grow border border-gray-300 rounded-lg p-3 focus:ring-primary focus:border-primary">
+                            <button type="submit" id="send-chat-btn" class="bg-primary hover:bg-primary-dark text-white p-3 rounded-lg font-medium transition duration-300">
+                                <i class="fas fa-paper-plane"></i>
+                            </button>
+                        </form>
+                    </div>
+
+                    <div id="suggestions-box" class="mt-6">
+                        <h2 class="text-xl font-semibold text-gray-800 mb-3">Quick Recommendations</h2>
+                        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div class="bg-red-100 border-l-4 border-red-500 p-4 rounded-md shadow-sm">
+                                <p class="font-bold text-red-700">ALERT: Fungus Risk</p>
+                                <p class="text-sm text-red-600">Consider applying Azoxystrobin immediately.</p>
+                            </div>
+                            <div class="bg-blue-100 border-l-4 border-blue-500 p-4 rounded-md shadow-sm">
+                                <p class="font-bold text-blue-700">ACTION: Check Soil pH</p>
+                                <p class="text-sm text-blue-600">pH seems low. May need lime application.</p>
+                            </div>
+                            <div class="bg-yellow-100 border-l-4 border-yellow-500 p-4 rounded-md shadow-sm">
+                                <p class="font-bold text-yellow-700">INVENTORY: Low Urea</p>
+                                <p class="text-sm text-yellow-600">Only 10 bags left. Order now for top dressing.</p>
+                            </div>
+                            <div class="bg-green-100 border-l-4 border-green-500 p-4 rounded-md shadow-sm">
+                                <p class="font-bold text-green-700">OPTIMIZE: Irrigation</p>
+                                <p class="text-sm text-green-600">Forecast shows dry week. Increase schedule.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="settings" class="page-content p-4 sm:p-6">
+                    <h1 class="text-2xl font-semibold text-gray-800 mb-6">Settings & Customization</h1>
+
+                    <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                        <div class="bg-white rounded-lg shadow p-6 space-y-6 transition duration-300">
+                            <h2 class="text-xl font-semibold text-gray-800 border-b pb-3">Account & Profile</h2>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">User Name</label>
+                                <input type="text" id="setting-user-name" class="w-full border border-gray-300 rounded-md p-2" readonly>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                                <input type="email" id="setting-user-email" class="w-full border border-gray-300 rounded-md p-2" readonly>
+                            </div>
+                            <button class="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 rounded-md font-medium transition duration-300">Update Profile</button>
+                        </div>
+                        <div class="bg-white rounded-lg shadow p-6 space-y-6 transition duration-300">
+                            <h2 class="text-xl font-semibold text-gray-800 border-b pb-3">App Preferences</h2>
+                            <div>
+                                <label for="theme-selector" class="block text-sm font-medium text-gray-700 mb-1">Theme Color</label>
+                                <select id="theme-selector" class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary">
+                                    <option value="theme-green">AgriPulse Green (Default)</option>
+                                    <option value="theme-blue">Ocean Blue</option>
+                                    <option value="theme-earth">Earth Brown</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label for="default-field" class="block text-sm font-medium text-gray-700 mb-1">Default Field/Operation</label>
+                                <select id="default-field" class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary">
+                                    </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+        
+        <div id="contact-modal" class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+                <h3 id="contact-modal-title" class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Contact Seller for...</h3>
+                <p id="contact-modal-seller" class="text-lg font-medium text-gray-700 mb-4">Seller: </p>
+                <div class="space-y-4">
+                    <a id="contact-email" href="#" class="flex items-center bg-gray-100 hover:bg-gray-200 p-3 rounded-md transition duration-300">
+                        <i class="fas fa-envelope mr-3 text-red-500"></i>
+                        <span class="font-medium">Email: </span><span id="contact-email-val" class="ml-2 text-gray-600"></span>
+                    </a>
+                    <a id="contact-whatsapp" href="#" target="_blank" class="flex items-center bg-whatsapp hover:bg-whatsapp-dark text-white p-3 rounded-md transition duration-300">
+                        <i class="fab fa-whatsapp mr-3"></i>
+                        <span class="font-medium">WhatsApp: </span><span id="contact-whatsapp-val" class="ml-2"></span>
+                    </a>
+                    <a id="contact-phone" href="#" class="flex items-center bg-blue-100 hover:bg-blue-200 p-3 rounded-md transition duration-300">
+                        <i class="fas fa-phone mr-3 text-blue-500"></i>
+                        <span class="font-medium">Phone: </span><span id="contact-phone-val" class="ml-2 text-gray-600"></span>
+                    </a>
+                </div>
+                <button id="close-contact-modal" class="mt-6 text-gray-500 hover:text-gray-800 float-right">Close</button>
+            </div>
+        </div>
+
+        <div id="post-listing-modal" class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-lg p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Post a New Marketplace Listing</h3>
+                <form id="post-listing-form" class="space-y-4">
+                    <div>
+                        <label for="listing-title" class="block text-sm font-medium text-gray-700">Title</label>
+                        <input type="text" id="listing-title" required class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary">
+                    </div>
+                    <div>
+                        <label for="listing-category" class="block text-sm font-medium text-gray-700">Category</label>
+                        <select id="listing-category" required class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary">
+                            <option value="fertilizer">Fertilizer</option>
+                            <option value="seed">Seed</option>
+                            <option value="pesticide">Pesticide/Chemicals</option>
+                            <option value="equipment">Equipment</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label for="listing-price" class="block text-sm font-medium text-gray-700">Price (KES)</label>
+                        <input type="number" id="listing-price" required class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary" min="100">
+                    </div>
+                    <div>
+                        <label for="listing-description" class="block text-sm font-medium text-gray-700">Description</label>
+                        <textarea id="listing-description" rows="3" class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary"></textarea>
+                    </div>
+                    <button type="submit" class="w-full bg-primary hover:bg-primary-dark text-white py-2 rounded-md font-medium transition duration-300">Post Listing</button>
+                </form>
+                <button id="close-post-listing-modal" class="mt-4 text-gray-500 hover:text-gray-800 float-right">Close</button>
+            </div>
+        </div>
+
+        <div id="add-task-modal" class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-md p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Add New Farm Task</h3>
+                <form id="add-task-form" class="space-y-4">
+                    <div>
+                        <label for="task-title" class="block text-sm font-medium text-gray-700">Task Title</label>
+                        <input type="text" id="task-title" required class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary">
+                    </div>
+                    <div>
+                        <label for="task-field" class="block text-sm font-medium text-gray-700">Field/Operation</label>
+                        <select id="task-field" required class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary">
+                            </select>
+                    </div>
+                    <div>
+                        <label for="task-date" class="block text-sm font-medium text-gray-700">Due Date</label>
+                        <input type="date" id="task-date" required class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary">
+                    </div>
+                    <div>
+                        <label for="task-priority" class="block text-sm font-medium text-gray-700">Priority</label>
+                        <select id="task-priority" class="w-full border border-gray-300 rounded-md p-2 focus:ring-primary focus:border-primary">
+                            <option value="high">High</option>
+                            <option value="medium" selected>Medium</option>
+                            <option value="low">Low</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="w-full bg-primary hover:bg-primary-dark text-white py-2 rounded-md font-medium transition duration-300">Create Task</button>
+                </form>
+                <button id="close-add-task-modal" class="mt-4 text-gray-500 hover:text-gray-800 float-right">Close</button>
+            </div>
+        </div>
+        
+        <div id="inventory-modal" class="fixed inset-0 bg-gray-600 bg-opacity-75 hidden z-50 flex items-center justify-center p-4 transition-opacity duration-300">
+            <div class="bg-white rounded-lg shadow-xl w-full max-w-4xl p-6">
+                <h3 class="text-xl font-bold text-gray-800 mb-4 border-b pb-2">Full Inventory Management</h3>
+                <div id="inventory-full-list" class="overflow-x-auto">
+                </div>
+                <button id="close-inventory-modal" class="mt-6 text-gray-500 hover:text-gray-800 float-right">Close</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
