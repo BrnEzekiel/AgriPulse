@@ -68,12 +68,12 @@ We believe in bridging traditional farming wisdom with modern data tools.
 
 ## Screenshots / Demo
 
-_Add screenshots here._
+_SCREENSHOTS FROM THE WEBPAGE._
 
-![Dashboard view](./assets/screenshots/dashboard.png)  
-![Marketplace view](./assets/screenshots/marketplace.png)  
+![Dashboard view](/dash.png)  
+![Marketplace view](/market.png)  
 
-Live Demo: **https://agripulse.example.com**
+Live Demo: **https://brnezekiel.github.io/AgriPulse/**
 
 ---
 
@@ -203,6 +203,7 @@ This project is licensed under the **MIT License**.
 
 **Brian Ezekiel**  
 GitHub: [BrnEzekiel](https://github.com/BrnEzekiel)  
-Email: your.email@example.com  
+Email: brianonyango229@gmail.com  
+Phone: +254 700911507
 
 > “May data and tradition grow side by side in the fields we tend.”
