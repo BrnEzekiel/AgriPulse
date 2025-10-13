@@ -1,4 +1,8 @@
 # AgriPulse 🌱
+---
+_DEPLOYED APP LINK._
+[AgriPulse](https://brnezekiel.github.io/AgriPulse/)
+---
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)  
 [![Build Status](https://img.shields.io/badge/build-passing-brightgreen.svg)](https://github.com/BrnEzekiel/AgriPulse/actions)  
