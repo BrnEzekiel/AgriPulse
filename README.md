@@ -1,7 +1,11 @@
 # AgriPulse 🌱
 ---
 _DEPLOYED APP LINK._
-[AgriPulse](https://brnezekiel.github.io/AgriPulse/)
+[AgriPulse](https://brnezekiel.github.io/AgriPulse/)  
+---
+_LOG IN USING.._
+EMAIL ... (john@agrifarmer.com)
+PASSWORD ...(ANY SIX DIGITS)
 ---
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)  
